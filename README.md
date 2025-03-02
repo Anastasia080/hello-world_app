@@ -1,4 +1,4 @@
 # Hello World!
-A simple application based on Reactos.
+A simple React-based application.
 
 Implemented the button component, container, and navigation components.
