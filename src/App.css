@@ -12,6 +12,23 @@
   transition: filter 300ms;
 }
 
+.container {
+  display: flex;
+  justify-content: space-between; /* Размещает контейнеры по краям */
+  align-items: flex-start; /* Выравнивание по верхнему краю */
+  padding: 40px; /* Отступы вокруг контейнеров */
+}
+
+.container2 {
+  width: 45%; 
+  padding: 20px; /* Внутренние отступы */
+  margin-left: 40px;
+}
+
+.container1 {
+  width: 100%;
+}
+
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
