@@ -4,7 +4,15 @@
   padding: 2rem;
   text-align: center;
 }
+.light {
+  background-color: white;
+  color: black;
+}
 
+.dark {
+  background-color: #191970;
+  color: white;
+}
 .logo {
   height: 6em;
   padding: 1.5em;

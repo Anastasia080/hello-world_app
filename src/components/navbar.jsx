@@ -1,13 +1,20 @@
-// src/Navbar.js
 import React from 'react';
+import { AppBar, Toolbar, Button } from '@mui/material';
+import { Link } from 'react-router-dom';
 
 const Navbar = () => {
-    return (
-        <nav style={{ padding: '10px', backgroundColor: '#f8f8f8' }}>
-            <a href="/" style={{color: '#000', margin: '10px' }}>Home</a>
-            <a href="/" style={{color: '#000', margin: '10px' }}>About</a>
-        </nav>
-    );
+  return (
+    <AppBar position="static" style={{ backgroundColor: '#A9A9A9', marginBottom: '20px' }}>
+      <Toolbar>
+        <Button color="inherit" component={Link} to="/">
+          Home
+        </Button>
+        <Button color="inherit" component={Link} to="/counter">
+          Counter
+        </Button>
+      </Toolbar>
+    </AppBar>
+  );
 };
 
 export default Navbar;
