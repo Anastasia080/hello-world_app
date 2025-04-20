@@ -1,20 +1,23 @@
-import React from 'react';
-import { Typography } from '@mui/material';
-import { useParams } from 'react-router-dom';
+import { Typography, Box } from '@mui/material';
 
-const Content = ({ labs }) => {
-  const { id } = useParams();
-  const lab = labs.find((lab) => lab.id === id);
-
-  if (!lab) {
-    return <Typography variant="h5">Lab not found</Typography>;
-  }
-
+const Content = ({ title, content }) => {
   return (
-    <div>
-      <Typography variant="h5">{lab.title}</Typography>
-      <Typography>{lab.content}</Typography>
-    </div>
+    <Box sx={{ 
+      p: 3,
+      backgroundColor: 'var(--content-bg)',
+      borderRadius: 2,
+      boxShadow: 1
+    }}>
+      <Typography variant="h4" gutterBottom sx={{ color: 'var(--text-primary)' }}>
+        {title}
+      </Typography>
+      <Typography variant="body1" sx={{ 
+        color: 'var(--text-primary)',
+        lineHeight: 1.6
+      }}>
+        {content}
+      </Typography>
+    </Box>
   );
 };
 

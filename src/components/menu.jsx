@@ -6,7 +6,7 @@ const Menu = ({ labs }) => {
   return (
     <List>
       {labs.map((lab) => (
-        <ListItem button key={lab.id} component={Link} to={`/lab/${lab.id}`}>
+        <ListItem button key={lab.id} component={Link} to={`/lab${lab.id}`}>
           <ListItemText primary={lab.title} />
         </ListItem>
       ))}
