@@ -1,0 +1,58 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "username": "admin",
+      "password": "admin123",
+      "email": "admin@example.com",
+      "profile": {
+        "name": "Admin",
+        "bio": "System administrator"
+      }
+    },
+    {
+      "id": "8fdd",
+      "password": "678900",
+      "email": "ivan@m",
+      "profile": {
+        "name": "Иван",
+        "bio": "12"
+      }
+    },
+    {
+      "id": "95c7",
+      "password": "123456",
+      "email": "shpigalskikhn08@mail.ru",
+      "profile": {
+        "name": "Анастасия",
+        "bio": "bio"
+      }
+    },
+    {
+      "id": "5d74",
+      "email": "sd@m",
+      "password": "567890",
+      "confirmPassword": "567890",
+      "profile": {
+        "name": "ewew",
+        "bio": "lalala"
+      }
+    }
+  ],
+  "feedbacks": [
+    {
+      "id": "1",
+      "userId": 1,
+      "message": "Great app!",
+      "rating": 5,
+      "createdAt": "2025-04-23T10:00:00Z"
+    },
+    {
+      "id": "7fe8",
+      "userId": "8fdd",
+      "message": "Cool!",
+      "rating": 5,
+      "createdAt": "2025-04-23T10:02:00.567Z"
+    }
+  ]
+}

@@ -1,56 +1,38 @@
+// authSlice.jsx
 import { createSlice } from '@reduxjs/toolkit';
 
-// Функция для безопасного получения данных из localStorage
-const getSafeLocalStorage = (key) => {
-  try {
-    const item = localStorage.getItem(key);
-    return item && item !== 'undefined' ? JSON.parse(item) : null;
-  } catch (error) {
-    console.error(`Error reading ${key} from localStorage:`, error);
-    return null;
-  }
-};
-
 const initialState = {
-  isLoggedIn: getSafeLocalStorage('isLoggedIn') || false,
-  user: getSafeLocalStorage('user') || null
+  isLoggedIn: false,
+  currentUser: null,
+  token: null,
+  status: 'idle'
 };
 
-const authSlice = createSlice({
+export const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
     login: (state, action) => {
-      try {
-        const userData = action.payload || {};
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('user', JSON.stringify(userData));
-        state.isLoggedIn = true;
-        state.user = userData;
-      } catch (error) {
-        console.error('Error saving auth data:', error);
-      }
+      state.isLoggedIn = true;
+      state.currentUser = action.payload.user;
+      state.token = action.payload.token;
+      state.status = 'succeeded';
     },
     logout: (state) => {
-      try {
-        localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('user');
-      } catch (error) {
-        console.error('Error clearing auth data:', error);
-      }
-      state.isLoggedIn = false;
-      state.user = null;
+      return { ... initialState}; // Полный сброс к начальному состоянию
     },
-    checkAuth: (state) => {
-      try {
-        state.isLoggedIn = getSafeLocalStorage('isLoggedIn') || false;
-        state.user = getSafeLocalStorage('user');
-      } catch (error) {
-        console.error('Error checking auth:', error);
+    updateProfile: (state, action) => {
+      if (state.currentUser) {
+        state.currentUser.profile = action.payload;
       }
     }
   }
 });
 
-export const { login, logout, checkAuth } = authSlice.actions;
+export const { 
+  login,
+  logout, // Добавьте в экспорт
+  updateProfile
+} = authSlice.actions;
+
 export default authSlice.reducer;

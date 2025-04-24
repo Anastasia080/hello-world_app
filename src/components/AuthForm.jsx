@@ -7,7 +7,7 @@ const AuthForm = ({ onSubmit, isLoginForm = true }) => {
 
   const submitHandler = useCallback((data) => {
     onSubmit(data);
-    window.location.href = 'http://localhost:5173'; // Полный переход с обновлением страницы
+    //window.location.href = 'http://localhost:5173/lab1'; // Полный переход с обновлением страницы
   }, [onSubmit]);
 
   return (
