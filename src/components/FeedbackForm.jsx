@@ -1,53 +1,52 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { addFeedback } from './feedbackSlice';
+import { Dialog, DialogTitle, DialogContent, TextField, Button, Rating, Stack } from '@mui/material';
 
-const FeedbackForm = () => {
+const FeedbackForm = ({ onClose, onSubmit }) => {
   const [message, setMessage] = useState('');
   const [rating, setRating] = useState(5);
-  const dispatch = useDispatch();
-  const currentUser = useSelector(state => state.auth.currentUser);
+  const currentUser = useSelector(state => state.auth.user);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!message.trim()) return;
 
-    const feedbackData = {
-      userId: currentUser.id,
+    onSubmit({
+      userId: currentUser?.id || 'anonymous',
       message,
       rating,
       createdAt: new Date().toISOString()
-    };
-
-    dispatch(addFeedback(feedbackData));
-    setMessage('');
-    setRating(5);
+    });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="feedback-form">
-      <h3>Leave Feedback</h3>
-      <div>
-        <label>Message:</label>
-        <textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label>Rating:</label>
-        <select
-          value={rating}
-          onChange={(e) => setRating(parseInt(e.target.value))}
-        >
-          {[1, 2, 3, 4, 5].map(num => (
-            <option key={num} value={num}>{num}</option>
-          ))}
-        </select>
-      </div>
-      <button type="submit">Submit</button>
-    </form>
+    <Dialog open={true} onClose={onClose}>
+      <DialogTitle>Оставить отзыв</DialogTitle>
+      <DialogContent>
+        <form onSubmit={handleSubmit}>
+          <Stack spacing={2} sx={{ mt: 2 }}>
+            <Rating
+              value={rating}
+              onChange={(e, newValue) => setRating(newValue)}
+              precision={1}
+            />
+            <TextField
+              label="Сообщение"
+              multiline
+              rows={4}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              fullWidth
+              required
+            />
+            <Button type="submit" variant="contained" color="primary">
+              Отправить
+            </Button>
+          </Stack>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 

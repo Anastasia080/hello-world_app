@@ -1,10 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
+import { 
+  CssBaseline, 
+  ThemeProvider, 
+  createTheme,
+  Box,
+  Container,
+  useMediaQuery
+} from '@mui/material';
 import MoonLogo from '/free-animated-icon-night-17102940.gif';
 import SunLogo from '/free-animated-icon-sun-11779621.gif';
 import WorldLogo from '/free-animated-icon-global-15747338.gif';
 import './App.css';
 import Button from './components/button';
-import Navbar from './components/navbar';
 import Header from './components/header';
 import Footer from './components/footer';
 import Menu from './components/menu';
@@ -15,11 +22,12 @@ import { store } from './components/store';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import AuthForm from './components/AuthForm';
 import ProfileButton from './components/ProfileButton';
-import Feedback from './components/FeedbackForm';
 import ProfilePage from './components/ProfilePage';
 import FeedbackList from './components/FeedbackList';
 import {login} from './components/authSlice';
-
+import HomePage from './components/HomePage';
+import AboutPage from './components/AboutPage';
+import QuickActions from './components/QuickActions'
 
 const AuthContent = ({ theme, isLoginForm, toggleAuthForm, loginUser, registerUser }) => {
   return (
@@ -44,7 +52,7 @@ const AppContent = ({ theme, toggleTheme }) => {
   const dispatch = useDispatch();
   const feedbackStatus = useSelector(state => state.feedback.status);
   const location = useLocation();
-
+  const isMobile = useMediaQuery('(max-width:600px)'); // Добавлено: проверка мобильного устройства
   const labs = [
     { id: '1', title: 'Lab 1', content: 'Content Lab 1' },
     { id: '2', title: 'Lab 2', content: 'Content Lab 2' },
@@ -60,7 +68,7 @@ useEffect(() => {
   document.body.className = theme; // Устанавливаем класс темы на body
   }, [theme]);
   return (
-    <div className={theme}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <ProfileButton theme={theme}/>
       <div>
         <img src={theme === 'light' ? SunLogo : MoonLogo} className="logo" alt="logo" />
@@ -69,16 +77,25 @@ useEffect(() => {
         <div className="container1">
           <h1>Hello World!</h1>
           <Button label="Click Me" onClick={handleClick} theme={theme} />
-          <Button label={theme === 'light' ? 'dark' : 'light'} onClick={toggleTheme} theme={theme} />
-          <Counter theme={theme} />
           <FeedbackList />
         </div>
         <div className="container2">
-          <Navbar />
-          <Header />
-          <Menu labs={labs} />
+          <Header toggleTheme={toggleTheme} />
+          <Box sx={{ display: 'flex', flexGrow: 1, mt: 8 }}> {/* Добавлен margin-top для Header */}
+        <Menu labs={labs} />
+        <Box 
+          component="main" 
+          sx={{ 
+            flexGrow: 1, 
+            p: isMobile ? 1 : 3, // Адаптивный padding
+            width: '100%',
+            maxWidth: '1200px',
+            mx: 'auto'
+          }}
+        >
           <Routes>
-            <Route path="/" element={<Navigate to="/lab1" replace />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
             {labs.map(lab => (
               <Route
                 key={lab.id}
@@ -88,10 +105,13 @@ useEffect(() => {
             ))}
             <Route path="/profile" element={<ProfilePage />} />
           </Routes>
+          </Box>
+          </Box>
         </div>
       </div>
       <Footer />
-    </div>
+      <QuickActions />
+    </Box>
   );
 };
 

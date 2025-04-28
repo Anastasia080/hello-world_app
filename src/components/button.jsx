@@ -1,7 +1,7 @@
 import React, {Children} from 'react';
 
 // Компонент кнопки
-const Button = ({ onClick, label,theme, disabled = false }) => {
+const Button = ({ onClick, icon,label,theme, disabled = false }) => {
   return (
     <button
       onClick={onClick} // Обработчик клика
@@ -16,8 +16,8 @@ const Button = ({ onClick, label,theme, disabled = false }) => {
         margin: '5px',
       }}
     >
-      {label}
-    </button>
+{icon && <span>{icon}</span>} {/* Отображаем иконку, если она передана */}
+{label && <span>{label}</span>} {/* Отображаем текст, если он передан */}    </button>
   );
 };
 
