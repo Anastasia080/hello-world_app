@@ -11,7 +11,6 @@ import Button from './components/button';
 import Header from './components/header';
 import Footer from './components/footer';
 import Menu from './components/menu';
-import Counter from './components/Counter';
 import Content from './components/content';
 import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate,useLocation  } from 'react-router-dom';
 import { store } from './components/store';
@@ -24,6 +23,7 @@ import AboutPage from './components/AboutPage';
 import QuickActions from './components/QuickActions'
 import AdminPanel from './components/AdminPanel';
 import ReadOnlyFeedback from './components/ReadOnlyFeedback';
+import { useGetUserByIdQuery } from './components/api';
 
 const AuthContent = ({ theme, isLoginForm, toggleAuthForm, loginUser, registerUser }) => {
   return (
@@ -132,30 +132,27 @@ const App = () => {
     if (token && user && !authState.isLoggedIn) {
       try {
         const parsedUser = JSON.parse(user);
-        // Проверяем актуальный статус пользователя на сервере
-        axios.get(`http://localhost:3001/users/${parsedUser.id}`)
-          .then(response => {
-            const freshUser = response.data;
-            
-            if (freshUser.isBlocked) {
-              alert('Ваш аккаунт заблокирован. Обратитесь к администратору.');
-              localStorage.clear();
-              dispatch(logout());
-              return;
-            }
-            
-            localStorage.setItem('user', JSON.stringify(freshUser));
-            dispatch(login({
-              user: freshUser,
-              token,
-              role: freshUser.role || 'user',
-              isBlocked: freshUser.isBlocked || false
-            }));
-          })
-          .catch(error => {
-            console.error('Failed to fetch user data', error);
-            localStorage.clear();
-          });
+        const { data: freshUser, isError } = useGetUserByIdQuery(parsedUser.id);
+        
+        if (isError) {
+          localStorage.clear();
+          return;
+        }
+        
+        if (freshUser?.isBlocked) {
+          alert('Ваш аккаунт заблокирован. Обратитесь к администратору.');
+          localStorage.clear();
+          dispatch(logout());
+          return;
+        }
+        
+        localStorage.setItem('user', JSON.stringify(freshUser));
+        dispatch(login({
+          user: freshUser,
+          token,
+          role: freshUser.role || 'user',
+          isBlocked: freshUser.isBlocked || false
+        }));
       } catch (e) {
         console.error('Failed to parse user data', e);
         localStorage.clear();

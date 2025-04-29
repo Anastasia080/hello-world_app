@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';import {
+import React from 'react';
+import {
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
@@ -9,9 +10,6 @@ import React, { useEffect } from 'react';import {
 import { useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
-import { useDispatch, useSelector } from 'react-redux';
-import { deleteUser, blockUser,fetchUsers } from './authSlice';
-import { deleteFeedback } from './feedbackSlice';
 import {
   Box,
   Table,
@@ -23,52 +21,70 @@ import {
   Paper,
   Button,
   Typography,
-  TablePagination
+  TablePagination,
+  CircularProgress,
+  Alert
 } from '@mui/material';
+import {
+  useGetUsersQuery,
+  useBlockUserMutation,
+  useDeleteUserMutation,
+  useGetFeedbacksQuery,
+  useDeleteFeedbackMutation
+} from './api';
 
 const DraggableColumnHeader = ({ header }) => {
-    const [, dragRef] = useDrag({
-      type: 'COLUMN',
-      item: { id: header.id }
-    });
-  
-    const [, dropRef] = useDrop({
-      accept: 'COLUMN',
-      drop: (item) => {
-        if (item.id !== header.id) {
-          header.column.getParentHeader().columnOrder.moveColumn(item.id, header.id);
-        }
+  const [, dragRef] = useDrag({
+    type: 'COLUMN',
+    item: { id: header.id }
+  });
+
+  const [, dropRef] = useDrop({
+    accept: 'COLUMN',
+    drop: (item) => {
+      if (item.id !== header.id) {
+        header.column.getParentHeader().columnOrder.moveColumn(item.id, header.id);
       }
-    });
-  
-    return (
-      <TableCell
-        ref={(node) => dragRef(dropRef(node))}
-        key={header.id}
-        sx={{
-          width: header.getSize(),
-          fontWeight: 'bold',
-          backgroundColor: 'background.default',
-          cursor: 'move'
-        }}
-      >
-        {flexRender(header.column.columnDef.header, header.getContext())}
-      </TableCell>
-    );
-  };
+    }
+  });
+
+  return (
+    <TableCell
+      ref={(node) => dragRef(dropRef(node))}
+      key={header.id}
+      sx={{
+        width: header.getSize(),
+        fontWeight: 'bold',
+        backgroundColor: 'background.default',
+        cursor: 'move'
+      }}
+    >
+      {flexRender(header.column.columnDef.header, header.getContext())}
+    </TableCell>
+  );
+};
 
 const AdminPanel = () => {
-  const dispatch = useDispatch();
-  const users = useSelector(state => state.auth.users);
-  const feedbacks = useSelector(state => state.feedback.items);
-const usersStatus = useSelector(state => state.auth.usersStatus);
-useEffect(() => {
-    if (usersStatus === 'idle') {
-      dispatch(fetchUsers());
-    }
-  }, [dispatch, usersStatus]);
+  // Запросы данных через RTK Query
+  const {
+    data: users = [],
+    isLoading: isUsersLoading,
+    isError: isUsersError,
+    isFetching: isUsersFetching
+  } = useGetUsersQuery();
 
-// Определение колонок для пользователей
+  const {
+    data: feedbacks = [],
+    isLoading: isFeedbacksLoading,
+    isError: isFeedbacksError
+  } = useGetFeedbacksQuery();
+
+  // Мутации
+  const [blockUser] = useBlockUserMutation();
+  const [deleteUser] = useDeleteUserMutation();
+  const [deleteFeedback] = useDeleteFeedbackMutation();
+
+  // Определение колонок для пользователей
   const userColumns = [
     {
       header: 'ID',
@@ -101,9 +117,9 @@ useEffect(() => {
             variant="outlined"
             color="error"
             size="small"
-            onClick={() => {
+            onClick={async () => {
               if (window.confirm(`Вы уверены, что хотите удалить пользователя ${row.original.email}?`)) {
-                dispatch(deleteUser(row.original.id));
+                await deleteUser(row.original.id);
               }
             }}
           >
@@ -113,10 +129,10 @@ useEffect(() => {
             variant="outlined"
             color="warning"
             size="small"
-            onClick={() => {
+            onClick={async () => {
               const action = row.original.isBlocked ? 'разблокировать' : 'заблокировать';
               if (window.confirm(`Вы уверены, что хотите ${action} пользователя ${row.original.email}?`)) {
-                dispatch(blockUser(row.original.id));
+                await blockUser({ id: row.original.id, isBlocked: !row.original.isBlocked });
               }
             }}
           >
@@ -165,7 +181,7 @@ useEffect(() => {
           variant="outlined"
           color="error"
           size="small"
-          onClick={() => dispatch(deleteFeedback(row.original.id))}
+          onClick={async () => await deleteFeedback(row.original.id)}
         >
           Delete
         </Button>
@@ -175,7 +191,7 @@ useEffect(() => {
   ];
 
   // Создание таблиц
-   const userTable = useReactTable({
+  const userTable = useReactTable({
     data: users,
     columns: userColumns,
     getCoreRowModel: getCoreRowModel(),
@@ -209,8 +225,23 @@ useEffect(() => {
     }
   });
 
-  if (usersStatus === 'loading') {
-    return <div>Loading users...</div>;
+  // Обработка состояний загрузки и ошибок
+  if (isUsersLoading || isFeedbacksLoading) {
+    return (
+      <Box display="flex" justifyContent="center" p={4}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (isUsersError || isFeedbacksError) {
+    return (
+      <Box p={3}>
+        <Alert severity="error">
+          {isUsersError ? 'Ошибка загрузки пользователей' : 'Ошибка загрузки отзывов'}
+        </Alert>
+      </Box>
+    );
   }
 
   return (
@@ -218,8 +249,9 @@ useEffect(() => {
       <Box sx={{ p: 3 }}>
         {/* Таблица пользователей */}
         <Typography variant="h5" gutterBottom sx={{ mt: 3 }}>
-          User Management
+          User Management {isUsersFetching && <CircularProgress size={20} sx={{ ml: 2 }} />}
         </Typography>
+        
         <TableContainer component={Paper} sx={{ mb: 4 }}>
           <Table>
             <TableHead>
@@ -274,10 +306,7 @@ useEffect(() => {
                         backgroundColor: 'background.default'
                       }}
                     >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                      {flexRender(header.column.columnDef.header, header.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>

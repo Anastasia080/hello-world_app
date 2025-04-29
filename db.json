@@ -52,7 +52,13 @@
         "name": "lalalala",
         "bio": "lalala:)"
       },
-      "isBlocked": true
+      "isBlocked": false
+    },
+    {
+      "id": "6900",
+      "email": "lalala@mail.ru",
+      "password": "222222",
+      "confirmPassword": "222222"
     }
   ],
   "feedbacks": [
