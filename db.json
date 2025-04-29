@@ -5,6 +5,8 @@
       "username": "admin",
       "password": "admin123",
       "email": "admin@example.com",
+      "role": "admin",
+      "isBlocked": false,
       "profile": {
         "name": "Admin",
         "bio": "System administrator"
@@ -14,6 +16,7 @@
       "id": "8fdd",
       "password": "678900",
       "email": "ivan@m",
+      "isBlocked": false,
       "profile": {
         "name": "Иван",
         "bio": "12"
@@ -23,6 +26,7 @@
       "id": "95c7",
       "password": "123456",
       "email": "shpigalskikhn08@mail.ru",
+      "isBlocked": false,
       "profile": {
         "name": "Анастасия",
         "bio": "bio"
@@ -33,10 +37,22 @@
       "email": "sd@m",
       "password": "567890",
       "confirmPassword": "567890",
+      "isBlocked": true,
       "profile": {
         "name": "ewew",
         "bio": "lalala"
       }
+    },
+    {
+      "id": "2712",
+      "email": "vs@mail.ru",
+      "password": "555555",
+      "confirmPassword": "555555",
+      "profile": {
+        "name": "lalalala",
+        "bio": "lalala:)"
+      },
+      "isBlocked": true
     }
   ],
   "feedbacks": [

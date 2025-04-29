@@ -1,10 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { 
-  CssBaseline, 
-  ThemeProvider, 
-  createTheme,
   Box,
-  Container,
   useMediaQuery
 } from '@mui/material';
 import MoonLogo from '/free-animated-icon-night-17102940.gif';
@@ -21,13 +17,13 @@ import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate,useLocati
 import { store } from './components/store';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import AuthForm from './components/AuthForm';
-import ProfileButton from './components/ProfileButton';
 import ProfilePage from './components/ProfilePage';
-import FeedbackList from './components/FeedbackList';
 import {login} from './components/authSlice';
 import HomePage from './components/HomePage';
 import AboutPage from './components/AboutPage';
 import QuickActions from './components/QuickActions'
+import AdminPanel from './components/AdminPanel';
+import ReadOnlyFeedback from './components/ReadOnlyFeedback';
 
 const AuthContent = ({ theme, isLoginForm, toggleAuthForm, loginUser, registerUser }) => {
   return (
@@ -52,6 +48,7 @@ const AppContent = ({ theme, toggleTheme }) => {
   const dispatch = useDispatch();
   const feedbackStatus = useSelector(state => state.feedback.status);
   const location = useLocation();
+  const authState = useSelector(state => state.auth);
   const isMobile = useMediaQuery('(max-width:600px)'); // Добавлено: проверка мобильного устройства
   const labs = [
     { id: '1', title: 'Lab 1', content: 'Content Lab 1' },
@@ -69,7 +66,6 @@ useEffect(() => {
   }, [theme]);
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <ProfileButton theme={theme}/>
       <div>
         <img src={theme === 'light' ? SunLogo : MoonLogo} className="logo" alt="logo" />
       </div>
@@ -77,7 +73,7 @@ useEffect(() => {
         <div className="container1">
           <h1>Hello World!</h1>
           <Button label="Click Me" onClick={handleClick} theme={theme} />
-          <FeedbackList />
+          <ReadOnlyFeedback />
         </div>
         <div className="container2">
           <Header toggleTheme={toggleTheme} />
@@ -104,6 +100,9 @@ useEffect(() => {
               />
             ))}
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/admin" element={
+             authState.role === 'admin' ? <AdminPanel /> : <Navigate to="/" />
+                } />
           </Routes>
           </Box>
           </Box>
@@ -132,10 +131,31 @@ const App = () => {
     
     if (token && user && !authState.isLoggedIn) {
       try {
-        dispatch(login({
-          user: JSON.parse(user),
-          token
-        }));
+        const parsedUser = JSON.parse(user);
+        // Проверяем актуальный статус пользователя на сервере
+        axios.get(`http://localhost:3001/users/${parsedUser.id}`)
+          .then(response => {
+            const freshUser = response.data;
+            
+            if (freshUser.isBlocked) {
+              alert('Ваш аккаунт заблокирован. Обратитесь к администратору.');
+              localStorage.clear();
+              dispatch(logout());
+              return;
+            }
+            
+            localStorage.setItem('user', JSON.stringify(freshUser));
+            dispatch(login({
+              user: freshUser,
+              token,
+              role: freshUser.role || 'user',
+              isBlocked: freshUser.isBlocked || false
+            }));
+          })
+          .catch(error => {
+            console.error('Failed to fetch user data', error);
+            localStorage.clear();
+          });
       } catch (e) {
         console.error('Failed to parse user data', e);
         localStorage.clear();
@@ -153,8 +173,19 @@ const App = () => {
         alert('Пользователь не найден');
         return;
       }
+    
       
       const user = users[0];
+
+      // Проверка на блокировку пользователя
+    if (user.isBlocked) {
+      alert('Ваш аккаунт заблокирован. Обратитесь к администратору.');
+      // Очищаем localStorage на случай, если там сохранены данные заблокированного пользователя
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      dispatch(logout());
+      return;
+    }
       if (user.password !== data.password) {
         alert('Неверный пароль');
         return;
@@ -165,10 +196,12 @@ const App = () => {
       
       dispatch(login({
         user,
-        token: 'fake-jwt-token'
+        token: 'fake-jwt-token',
+        role: user.role || 'user',
+        isBlocked: user.isBlocked || false
       }));
       
-      navigate('/lab1');
+      navigate(user.role === 'admin' ? '/admin' : '/lab1');
     } catch (error) {
       console.error('Login error:', error);
       alert('Ошибка при авторизации');
@@ -177,6 +210,13 @@ const App = () => {
 
   const registerUser = useCallback(async (data) => {
     try {
+
+      const userData = {
+        ...data,
+        role: 'user', // По умолчанию регистрируем как обычного пользователя
+        status: 'active'
+      };
+
       const response = await fetch('http://localhost:3001/users', {
         method: 'POST',
         headers: {
@@ -189,7 +229,8 @@ const App = () => {
       localStorage.setItem('user', JSON.stringify(user));
       dispatch(login({
         user,
-        token: 'fake-jwt-token'
+        token: 'fake-jwt-token',
+        role: user.role
       }));
       navigate('/lab1');
     } catch (error) {
